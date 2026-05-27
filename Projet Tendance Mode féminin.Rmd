@@ -1,0 +1,70 @@
+---
+title: "Projet Tendance Mode"
+author: "Marie-Anne Randrianarivony"
+date: "2026-05-27"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+# Chargement des packages et des données
+
+```{r load-packages}
+library(tidyverse)
+library(janitor)
+library(skimr)
+library(ggplot2)
+```
+
+```{r load-data}
+reviews  <- read.csv("C:/Users/Marie-Anne/OneDrive - Université du Québec à Chicoutimi/Documents/Projet-classification-des-tendances-de-mode-f-minin/data/Womens Clothing E-Commerce Reviews.csv", na.strings=c("","NA"))
+
+```
+
+Étant donné qu'on cherche à classifier les tendances de mode féminin basé sur les avis des clients. La variable cible sera donc la colonne `Recommended.ID`.
+
+# 1. Nettoyage des données
+## Apercu du jeu de donnée et gestion des valeurs manquantes
+```{r}
+skim(reviews)
+sum(is.na(reviews))
+```
+Les colonnes `title`, `Review.Text`, `Division.Name`, `Department.Name`, `Class.Name` contiennent des valeurs manquantes.
+
+Nous avons 11 variables pour 23486 observations.
+
+```{r suppression-index}
+reviews <- reviews %>% 
+  select(-X) 
+```
+
+## Renommage des colonnes
+
+```{r renommage-colonne}
+reviews <- reviews %>% 
+  rename(
+    clothing_id = Clothing.ID,
+    age = Age,
+    title = Title,
+    review = Review.Text,
+    rating = Rating,
+    recommended = Recommended.IND,
+    feedback_positif = Positive.Feedback.Count,
+    division = Division.Name,
+    department = Department.Name,
+    class = Class.Name
+  )
+```
+
+## Traitement des valeurs manquantes
+
+On a constaté récemment qu'il y avait 14 valeurs manquantes dans chacune des colonnes `department`,`division`, `class`. Étant donné que ce n'est pas un nombre important de données comparé au 23486 observations. On peut donc les supprimer. Concernant les colonnes `title`, on observe 3810 valeurs manquantes. Pour la colonne `review`, on observe 845 valeurs manquantes. Il s'agit là d'un nombre minimal comparé aux nombres d'observations alors on peut les supprimer également.
+
+```{r NaN}
+reviews <- reviews %>% 
+  filter(!is.na(title),!is.na(review),!is.na(department), !is.na(division), !(is.na(class)))
+```
+
