@@ -143,5 +143,45 @@ reviews %>%
 
 Les clients qui ont laissés des avis dans notre jeu de données ont entre 20 ans et 75 ans. Mais on remarque que 3000 des clients se trouvent dans leur trentaines voire quarantaines.
 
+# 3. Enrichissement des données
+
+## Ajout des colonnes nbr_mots, nbr_char, groupe_age
+On va rajouter le nombre de mots et le nombre de caractères pour chaque avis. En admettant qu'un avis long et détaill est souvent signe d'une cliente très satisfaite ou très insatisfaite. 
+On va également catégoriser l'âge en trois catégories moins de 30 ans, entre 30 et 40, et 60 ans et plus.
+
+```{r feature-engineering}
+reviews <- reviews %>% 
+  mutate(
+    nbr_mots = lengths(strsplit(review, " ")),
+    nbr_char = nchar(review),
+    groupe_age = case_when(
+      age < 30 ~"moins de 30 ans",
+      age >=30 & age < 40 ~ " 30 et 40 ans",
+      age >=40 & age < 60 ~ " 40 et 60 ans",
+      TRUE   ~"60 ans et plus"
+    ),
+    groupe_age = factor(groupe_age)
+  )
+```
+
+## Extraction des mots-clés
+On va aussi extraire les avis ayant des mots-clés qui indiqueront potentiellement si une cliente recommande le produit ou non. En prenant seulement les mots-clés à connotation positive.
+```{r mots-clés}
+reviews <- reviews %>% 
+  mutate(
+  fit = as.integer(str_detect(tolower(review), "fit|fits|fitted")),
+  quality = as.integer(str_detect(tolower(review), "quality|material|fabric")),
+ color = as.integer(str_detect(tolower(review), "color|colour|pattern")),
+love = as.integer(str_detect(tolower(review), "love|lovely|beautiful")),
+size = as.integer(str_detect(tolower(review), "size|sizing|small|large|petite|medium|big"))
+)
+```
+
+```{r apercu}
+reviews %>% 
+  select(review, fit, quality, size, love) %>% 
+  head(5)
+```
+
 
 
