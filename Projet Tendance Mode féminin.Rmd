@@ -68,3 +68,80 @@ reviews <- reviews %>%
   filter(!is.na(title),!is.na(review),!is.na(department), !is.na(division), !(is.na(class)))
 ```
 
+# 2. Analyse exploratoire des données
+
+
+
+```{r distribution-division}
+reviews %>% 
+  count(division) %>% 
+  ggplot(aes(x =fct_reorder(division,n), y=n, fill=division)) +
+  geom_col() +
+    scale_fill_manual(values = c("#F48FB1", "#E91E8C", "#C2185B")) +
+labs(title = "Distribution des divisions",x="Les différentes  divisions", y ="Nombre d'avis") +
+  theme_minimal()
+
+```
+
+**12000** des avis des clients concernent la division **Général**.
+
+```{r distribution-department}
+reviews %>% 
+  count(department) %>% 
+  mutate(department = fct_reorder(department, n)) %>% 
+  ggplot(aes(x = department, y=n, fill = department)) +
+  geom_col() + 
+  scale_fill_brewer(palette = "RdPu") +
+  labs(title = "Distribution des départements", x= "Les départements", y ="Nombre d'avis") +
+  theme_minimal()
+```
+
+**7500** des avis concernent les vêtements dans le département **Top**. Ce qui réflète la mode féminine. Les hauts sont les articles les plus achetés.
+
+```{r distribution-rating}
+reviews %>% 
+  count(rating) %>% 
+  mutate(pct = round(n/ sum(n)*100, 1)) %>% 
+  ggplot(aes(x= factor(rating), y=pct, fill=factor(rating))) + 
+  geom_col() +
+ scale_fill_brewer(palette = "RdPu") +
+  geom_text(aes(label = paste0(pct, "%")), vjust = -0.5, size = 3.5) + 
+  ylim(0, 65) +
+  labs(title = "Distribution des avis de 1 à 5", x= "Avis", y="%", fill="Échelle") +
+  theme_minimal()
+```
+
+Environ la **moitié des avis** laissés par les clients sont notés à **la note maximale 5**.
+
+```{r taux-de-recommandation}
+reviews %>% 
+  count(recommended) %>% 
+  mutate(
+    label = if_else(recommended ==1, "Recommandé", "Non recommandé"),
+    pct = round(n/sum(n) *100,1)
+  ) %>% 
+  ggplot(aes(x = label, y = pct, fill=label)) +
+  geom_col() +
+    scale_fill_manual(values = c("#F48FB1", "#C2185B")) +
+  geom_text(aes(label= paste0(pct, "%")), vjust = -0.5, size = 3.5) +
+  ylim(0,90) +
+  labs(title="Taux de recommandation", y="%", fill="Échelle") +
+  theme_minimal()
+```
+
+81,8% des clients recommandent les vêtements qu'ils ont laissés des avis.
+
+Pour l'étape de modélisation, afin que le modèle ne surapprend pas, au lieu d'utiliser l'accuracy comme métrique nous allons utiliser le **ROC-AUC** pour mesurer la performance.
+
+```{r distribution-age}
+reviews %>% 
+  ggplot(aes(x=age)) +
+  geom_histogram(binwidth = 5, fill="#E91E8C", color="white") +
+  labs(title= "Distribution de l'âge de la clientèle", x="Âge", y="Nombre de clientes") +
+  theme_minimal()
+```
+
+Les clients qui ont laissés des avis dans notre jeu de données ont entre 20 ans et 75 ans. Mais on remarque que 3000 des clients se trouvent dans leur trentaines voire quarantaines.
+
+
+
