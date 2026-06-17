@@ -63,9 +63,11 @@ Peut-on prédire, à partir des caractéristiques d'un produit et du contenu tex
 
 ---
 projet-mode-feminin/
+
   ├── data/                              
   ├── Projet_Tendance_Mode_féminin.Rmd  
   ├── Projet_Tendance_Mode_féminin.html 
+  
   └── README.md                         
   
 ---
