@@ -17,6 +17,10 @@ library(tidyverse)
 library(janitor)
 library(skimr)
 library(ggplot2)
+library(tidytext)
+library(textdata)
+library(tidymodels)
+library(randomForest)
 ```
 
 ```{r load-data}
@@ -24,11 +28,14 @@ reviews  <- read.csv("C:/Users/Marie-Anne/OneDrive - Université du Québec à C
 
 ```
 
+
+
+
 Étant donné qu'on cherche à classifier les tendances de mode féminin basé sur les avis des clients. La variable cible sera donc la colonne `Recommended.ID`.
 
 # 1. Nettoyage des données
 ## Apercu du jeu de donnée et gestion des valeurs manquantes
-```{r}
+```{r valeur-manquante}
 skim(reviews)
 sum(is.na(reviews))
 ```
@@ -69,8 +76,6 @@ reviews <- reviews %>%
 ```
 
 # 2. Analyse exploratoire des données
-
-
 
 ```{r distribution-division}
 reviews %>% 
@@ -131,7 +136,7 @@ reviews %>%
 
 81,8% des clients recommandent les vêtements qu'ils ont laissés des avis.
 
-Pour l'étape de modélisation, afin que le modèle ne surapprend pas, au lieu d'utiliser l'accuracy comme métrique nous allons utiliser le **ROC-AUC** pour mesurer la performance.
+Pour l'étape de modélisation, afin d'éviter le surapprentissage, au lieu d'utiliser l'accuracy comme métrique nous allons utiliser le **ROC-AUC** pour mesurer la performance.
 
 ```{r distribution-age}
 reviews %>% 
@@ -182,6 +187,121 @@ reviews %>%
   select(review, fit, quality, size, love) %>% 
   head(5)
 ```
+# 4. Analyse des sentiments: sentiments positifs et sentiments négatifs
+
+Il faudra classer les mots en deux catégories positifs et négatifs. Pour cela, on utilisera le lexique Bing crée par les chercheurs Bing Liu et Al.
+```{r analyse-du-sentiment}
+sentiments_bing <- reviews %>% 
+  select(clothing_id, review) %>% 
+  unnest_tokens(word, review) %>% 
+  inner_join(get_sentiments("bing"), by = "word") %>% 
+  count(clothing_id, sentiment) %>% 
+  pivot_wider(
+    names_from = sentiment,
+    values_from = n,
+    values_fill = 0,
+    names_prefix = "sent_"
+  ) %>% 
+  mutate(score_sentiment = sent_positive - sent_negative)
+
+head(sentiments_bing)
+```
+
+## Jointure des données sur les sentiments avec le jeu de donnée principal
+
+```{r merge}
+reviews <- reviews %>% 
+  left_join(sentiments_bing, by ="clothing_id")
+
+reviews <- reviews %>% 
+  mutate(
+    sent_positive = replace_na(sent_positive, 0),
+    sent_negative = replace_na(sent_negative, 0),
+    score_sentiment = replace_na(score_sentiment, 0)
+  )
+
+glimpse(reviews)
+```
+## Transformation de la variable "recommended" en catégorielle 
+```{r recommended}
+reviews <- reviews %>% 
+  mutate(
+    recommended = factor(recommended, levels=c(0,1),
+    labels = c("Non","Oui")),
+    groupe_age = factor(groupe_age)
+  )
+```
 
 
+# Modélisation 
+
+La variable cible `recommended` étant binaire (Oui/Non), le modèle sera une classification. Il sera **supervisé** car la variable est déjà étiquetée.
+
+## Régression Logistique
+
+
+### Construction du modèle 
+
+```{r construction-modele}
+
+modele <- reviews %>% 
+  drop_na() %>% 
+  mutate(
+    recommended = if_else(recommended == "Oui", 1, 0),
+    department = factor(department),
+    division = factor(division),
+    class = factor(class),
+    group_age = factor(groupe_age)
+  )
+  
+```
+
+### Séparation du jeu d'entraînement et du jeu de test
+```{r split-train-test}
+set.seed(42)
+train_idx <- sample(nrow(modele), 0.8 * nrow(modele))
+train <- modele[train_idx, ]
+test <- modele[-train_idx, ]
+```
+
+###  Entraînement 
+```{r}
+modele_log <- glm(
+  recommended ~ feedback_positif + department + fit + quality + color + love + size + score_sentiment +  sent_positive, 
+  data = train,
+  family = binomial
+)
+
+summary(modele_log)
+```
+### Évaluation
+
+```{r prediction}
+predictions <- predict(modele_log,
+                       newdata = test,
+                       type = "response")
+
+# Conversions en classes pour la matrice de confusion en utilisant un seuil à 0.5
+classes_predites <- if_else(predictions > 0.5, 1, 0)
+```
+
+### Matrice de confusion
+```{r matrice-de-confusion}
+table(Valeurs_reelles = test$recommended,
+      valeurs_predites = classes_predites)
+```
+Le modèle prédit presque toujours "Oui" même lorsque le produit n'est pas  réellement recommandé.
+
+### Répartition de la variable cible `recommended`
+
+```{r repartition-recommended}
+table(train$recommended)
+```
+Cette répartition explique pourquoi le modèle prédit tout le temps "recommandé" à un produit.
+
+### Mesure de performance du modèle
+
+```{r mesure-de-performanced}
+mean(classes_predites == test$recommended)
+```
 

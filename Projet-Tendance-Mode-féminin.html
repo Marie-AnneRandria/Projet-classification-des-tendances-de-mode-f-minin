@@ -362,7 +362,11 @@ display: none;
 <pre class="r"><code>library(tidyverse)
 library(janitor)
 library(skimr)
-library(ggplot2)</code></pre>
+library(ggplot2)
+library(tidytext)
+library(textdata)
+library(tidymodels)
+library(randomForest)</code></pre>
 <pre class="r"><code>reviews  &lt;- read.csv(&quot;C:/Users/Marie-Anne/OneDrive - Université du Québec à Chicoutimi/Documents/Projet-classification-des-tendances-de-mode-f-minin/data/Womens Clothing E-Commerce Reviews.csv&quot;, na.strings=c(&quot;&quot;,&quot;NA&quot;))</code></pre>
 <p>Étant donné qu’on cherche à classifier les tendances de mode féminin
 basé sur les avis des clients. La variable cible sera donc la colonne
@@ -694,8 +698,8 @@ sont notés à <strong>la note maximale 5</strong>.</p>
 <p><img role="img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABUAAAAPACAMAAADDuCPrAAABjFBMVEUAAAAAADoAAGYAOjoAOmYAOpAAZrY1AAA6AAA6OgA6Ojo6OmY6ZmY6ZpA6ZrY6kJA6kLY6kNtNTU1NTW5NTY5Nbm5Nbo5NbqtNjsheAABmAABmOgBmOjpmZgBmZjpmZmZmkJBmkLZmkNtmtrZmtttmtv9uTU1ubk1ubm5ubo5ujo5ujqtujshuq8huq+SENQCOTU2Obk2Obm6Ojo6Oq6uOq8iOq+SOyOSOyP+QOgCQZgCQZjqQZmaQkGaQkLaQttuQ27aQ29uQ2/+oXgCrbk2rjm6rq46ryOSr5Mir5P+2ZgC2Zjq2kDq2kGa2kJC2tpC2tra2ttu225C229u22/+2///CGFvIjk3Ijm7Iq27IyKvI5KvI5OTI5P/I///JhDXbkDrbkGbbtmbbtpDbtrbb27bb29vb2//b/7bb///kq27kq47kyI7kyKvkyMjk5P/k///rqF7ryYTr66jr68nr6+v0j7H/tmb/yI7/25D/27b/29v/5Kv/5Mj/5OT//7b//8j//9v//+T///+LhtPaAAAACXBIWXMAAB2HAAAdhwGP5fFlAAAgAElEQVR4nO3d7WMc13WY8YFEsiAZsuLSllRQra2UROpKVSk3rcUwCVOWaipQTp1KLB23stdkFBWs3bKJmQXfTIL7j3ded+cVg7m755wdnOf3IQJ2Z7AL3nufzO7MwtEcABAksn4CADBWBBQAAhFQAAhEQAEgEAEFgEAEFAACEVAACERAASAQAQWAQAQUAAIRUAAIREABIBABBYBABBQAAhFQAAgkF9BZ1HRtnQ+wF0WX1vnzrB3j93m1E23dVnkyAI6BgG6Mo36fhx+k3SSgwEYhoBuj+/c5vJF3k4ACG0X+PdCn29Fb9yR+sJ+A0k1gMxHQjUFAgbEhoBuDgAJjQ0A3BgEFxsYioA9vbkdR9PaH32XflsIxjaIz6R7Jf/Kd62eeDh9+EEVbF/fL+z1LfuLWha8bDx7/wGuHd7ejrfO327c7/OnZ+Lmcv7W85dsPKtvsJe1K98s2Sh49Ov/VMe5s/U2vZZu//eH+Ub9PZb/k3yARP1SppI2n2fKjAcjSD+izK8U5+a0sjY2AJv/JOnF4Y5HS+u5btxf7Hd4tfuLFejuSgO7l9Wnb7td5nKLT+S3JI1a2SRo5zW+6tPwRl/rvbP1NrxXbFCFs+X1q+7UFtOVpNn80AGHqAY0bsJCt9GZAkzykRYu/rx29FjWJ7/jn+X7LmDRqm/yAc0UgW7abLm/JClp+dtktcSP/bHHT1b36Uz/iztbf9Fztx7f8PvX9WgLa9jQbPxqANPWAxit96+p+8tp5Ow9GM6BpMy61vYBPI3gxfmX7MD1Ku5TvlN70/G7UeBcxLeQ7+/Pn37Vtl/z8U7fyQ9PiuUTJy+Jvr5RvSW96mLw8Tp/74ZdFgvvubP6m2ebpMea1jt+nud/iwLP44oinufjRAMRpBzQ5dsqX9yw/VGoJaBqR28m2Zxo/LLqafpWm51LjJ9YOWKfLprZst7c4WJtmXz3dXrwtsLfcJr9ptjiSXOx41J3tv2m+eXLnpeP8Pul+9YAe+TSLHw1AnHZAZ8sXmPFK7wxoWoG9Rg+TbYukFhWZliq7Vz/4mi7fEWxuV0pVXqa9yrNL71w+iVKZSkXsvLP9Ny1+ofwXafl9WvarB/TIp1n+mQBEGV7GFK/94uCpEdDig6D1M/A3Sjfl+5WjOasffE2XqWluN6u/W1j/8dXElXpb/E5H3tn6mxZpy37Ttt+nZb9aQI9+mpX/TwFAklFAD//uv/7pdnREQLM39eovRSsXRE7T+8unhqKo3o7lD2zZblbfuvLj87zuld8DKO4tBbT7zmP8pi2/T9t+tYAe/TQJKKDGIKDf3jxbVOyIgCaHdI3wFodkqVlrQKvHlN0BjbdrlGbdAe39TVt+n7b9CCiwmdQDurzI8eiAzjqOQMcT0GP8pq0Bbe5HQIHNZHEWPnbuD3741//rqPdAs+3ql4R3vITvvmqnGtBrXXd2/Pgz8xUCepzftO0lfMt+RwW08TQJKKBGO6DT/CLHeetJpOWpkOSrP2lcEt5xEqn7qp1p5U3V2nblk0jphh1nZ8ICevRvOu08idSy3/FOIhFQQJt2QEsLvXQ1Zuko8czyvuXljgvT6gU8l6o3FQdxle3PNHfNtyudOc+bNG29PigsoO2/afNDq/Xfp2W/+mVMRz5NAgqoUQ5oEqpLi9uzO6aLs0XxV9naz2Oy13gRX72EfHEt+vJH1rYvxaRlu+X1lHmq2q9QDwpo22/arFzz92nb73gX0hNQQJvBEWj6AjX9PGV2R3K66NR/TP5UUlQEtPRhntqL+MqHGJefYjz1Vf7Rx1o6yjFpbrf4KOeX5Z/V+Ixk8BFo/TdtqVzz92nZbxHVIz/KSUABbdoBXf7xjMVJotL58R9up2t/Vhx5zqJlFzLLjbf+RcsfE6lf+FSOSct20+Ut3X9MJDCgLb9pS+Wav0/3v9C1o/+YCAEFtKlfxrRo1ta/LM6FvCr+otu1p9v5uemiBs1PcxbF2bo2XbyOvVn8zFP1vwhaiUnLdg/qf87u1eIaouXfiQu8jKn5m7ZVrvn7tPwLZZ/LulR6Ld/9NAkooMbg74Gmf9T4/K3SdZiHD85lfxw4C2jto971Gnyb/tXir+fTZTO+Tf8AcfnPIudqMWlu1/yDyg+Tv1T8dvkvFYdeSN/4Tdsr1/h9Wv6FHiTP8p3yo3Q+TQIKqJEPKACcUAQUAAIRUAAIREABIBABBYBABBQAAhFQAAhEQAEgEAEFgEAEFAACEVAACERAASAQAQWAQAQUAAIRUAAIREABIBABBYBABBQAAhFQAAhEQAEgEAEFgEAEVMiTJ9bPAMfFWCEUARXCohwPxgqhCKgQFuV4MFYIRUCFsCjHg7FCKAIqhEU5HowVQhFQISzK8WCsEIqACmFRjgdjhVAEVAiLcjwYK4QioEJYlOPBWCEUARXCohwPxgqhCKgQFuV4MFYIRUCFsCjHg7FCKAIqhEU5HowVQhFQISzK8WCsEIqACmFRjgdjhVAEVAiLcjwYK4QioEJYlOPBWCEUARXCohwPxgqhCKgQFuV4MFYIRUCFsCjHg7FCKAIqhEU5HowVQhFQISzK8WCsEIqACmFRjgdjhVAEVAiLcjwYK4QioEJYlOPBWCEUARXCohwPxgqhCKgQFuV4MFYIRUCFsCjHg7FCKAIqhEU5HowVQhFQISzK8WCsEIqACmFRjgdjhVAEVAiLcjwYK4QioEJYlOPBWCEUARXCohwPxgqhCKgQFuV4MFYIRUCFsCjHg7FCKAIqhEU5HowVQhFQISzK8WCsEIqACmFRjgdjhVAEVAiLcjwYK4QioEJYlOPBWCEUARXCohwPxgqhCKgQFuV4MFYIRUCFsCjHg7FCKAIqhEU5HowVQhFQISzK8WCsEIqACmFRjgdjhVAEVAiLcjwYK4QioEJYlOPBWCEUARXCohwPxgqhCKgQFuV4MFYIRUCFsCjHg7FCKAIqhEU5HowVQhFQISzK8WCsEIqACmFRjgdjhVAEVAiLcjwYK4QioEJYlOPBWCGUXECfABgHsQqceByBCmFSjgdjhVAEVAiLcjwYK4QioEJYlOPBWCEUARXCohwPxgqhCKgQFuV4MFYIRUCFsCjHg7FCKAIqhEU5HowVQhFQISzK8WCsEIqACmFRjgdjhVAEVAiLcjwYK4QioEJYlOPBWCEUARXCohwPxgqhCKgQFuV4MFYIRUCFsCjHg7FCKAIqhEU5HowVQhFQISzK8WCsEIqACmFRboqHH0RRdP6r0i2HN966V94iGavqVg+2o+jCfvb1q52t2zrPFONDQIUQ0A1xN8pcWt40jRoBrW41Tb/ON5pGZ/SeLUaGgAohoJthFkUX9+fPbkTRteKmadQIaHWrVzvRO/vPdrKacgCKIxBQIQR0IxzeyI4f4/+ezl6SH96NGgH9XXWrWXr/NNuDA1AcgYAKIaAbIT6YzI48i5ftD69E0bl6QP+hutW0lNGn29VtgTICKoSAboRXO4u3NdMQxt9vXZ21BLS8VTmge+U3T4EaAiqEgG6E4qV78VL+1c7F/XkjoL+rblV6Cc8BKI5EQIUQ0M0w205ODz3/kyg/FfTdfN4M6JPqVqWTSByA4kgEVAgB3RBPr6TXJJ36enlTM6C1rbLLmE7d4wAUPQioEAK6IX69ndZw6+ryppaA1rZ6cDa9rokDUPQgoEII6GbYi+KX4+m1S8sUNgPatlW6YfI26JXq8SuwRECFENCNMFt+uGh5PXwjoP+vbav0nNK1+FV8emh6bQ40EVAhBHQj7BWtXFzPNG8J6H9q2yo/AN2L/8/hXnEZPlBBQIUQ0I2wV3yOqLiOKdES0JatsgPQ7Er8p9t8nhNtCKgQAroRVglo9g5oms7FB5qACgIqhIBuhOmxXsL/qm2r9ACUgOJIBFQIAd0IT7ePcxLp79u3Sg5GeQmPoxBQIQR0M+ylF3QmFyiVX5u3XMZU3yr/M3bpZ0E5iYQOBFQIAd0McQAzF5cFXAZ0lv4B0CdPWrYq/oxdfhkTB6BoQ0CFENBNkf2Pddwq3dIMaHOr5d9RfsaF9OhEQIUQ0PFgrBCKgAphUY4HY4VQBFQIi3I8GCuEIqBCWJTjwVghFAEVwqIcD8YKoQioEBbleDBWCEVAhbAox4OxQigCKoRFOR6MFUIRUCEsyvFgrBCKgAphUY4HY4VQBFSIq0X532HLegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4NTygb+5MCt/75Xz++vryaywRUOixngB+rRzQF7sEtA0BhR7rCeBX+Ev4F7uXv4j/czB5f33P5gQhoNBjPQH8Cg5ofCD6SfLf+5PP1vdsThACCj3WE8Cv4IA+mrz3eJ50ND0ORR0BhR7rCeBXaEBfX8+OPF9ff/cXn04mP/pmjc/pRCCg0GM9AfwKDeij/K3P4hxS84X8E7hh3Q/3Vh3AVRLiW2BAX1/PX7kfTCYfP57//vNJ45X8OhYmxsG6H+6tOoCrRcSzwIAeZO+ALo9E72enlFBwNSmt++Ge9QTwKyygb+7UX7IviooMAYUe6wngV1hAX+zWr5tv3uIcAYUe6wngV1hAm1fPv9jlCLSCgEKP9QTwKyygi3c8F6/l+UBSDQGFHusJ4FdQQEtXz9/Pwtl8U9Q7Ago91hPAr6CAvr6+eMPzxW5yGdPLTzmHVENAocd6AvgVFNDyG56P8j/GxEeRqggo9FhPAL+CAlq5ZunljyeTyx9z/FlDQKHHegL4xV+kF0JAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4JdcQJ/ADet+uLfqAIpV4MTjCFSIq0lp3Q/3rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocd6AvhFQIUQUOixngB+EVAhBBR6rCeAXwRUCAGFHusJ4BcBFUJAocdk1GdRdHrf5JE3CAEVQkChx2LQD29Eb92zeOCNQkCFEFDosRj0WbR12+JxNwsBFUJAocdi0PeiaxYPu2EIqBACCj3WE8AvAiqEgEKP9QTwi4AKIaDQozvce1FZy5mkVzvRpZ6fkJ6/3xv/aXwCKoSAQo/ucBPQJQIqhIBCj+5wE9AlAiqEgEKP7nD3do+AYlUEFHp0h5uALhFQIQQUenSHm4AuEVAhBBR6dIe7tXvPbm5H0flb6ddJQA9/ejaK3v5wv3z31oWvKz9h8YOq944JARVCQKFHd7jbAjrNTyldTL6JA3phJ/s+37K4O7u/HtDavWNCQIUQUOjRHe7KWfjsA/FxAk9/PT+8G6Wv3eOARlvxweezG9n3yd3J4eXzu3kjqwGt3zsmBFQIAYUe3eFuBjQuZprC/C80JQFNPygff5/c/nQ7OpPtOs22rwS0ce+YEFAhBBR6dIe7GdBZHsz8TzQVPU02TYI6XVwsGhf1zLwW0Ma9Y0JAhRBQ6NEd7uZ7oNPq5fRxQM+U7ih3Mdu3HNDmvWNCQIUQUOjRHe5m5mq3LC9jSgP6aqf+yaVyQJv3jgkBFUJAoUd3uAnoEgEVQkChR3e4AwJ6pnX7IqBje+OzJCSgr69PUt/7ZfLdm893J5OPvlnz8xo9Ago9usPdFtD8yDF7Q7MW0PxcfPMnFO+Bju2Nz5KQgL7YLQU0r2kWUywQUOjRHe5mQBdn4Z9uJ1/UAhrvUFyelNeycha+ce+YhAT0YPL+8pv7k/e+mb+8M3nv8dqe04lAQKFHd7ibAV1ct7RXXAdaCWic1XyPvLT160Cr945JSEDvTz5bfP1iNz8OvfzF2p7TiUBAoUd3uKt/DzRt5az+SaRKQJPPGp26FR9hfhlVPoK0/CRS5d4xCQjomzulWD7Kj0YfTT5Z11M6GQgo9OgOd0tAFx9nLz4LXw3o4u7FgWr7Z+FH18+QgL6+/u4vPp1MfpSeNyqORisv60FAoUl3uNsC2vhrTNmmiyvsn908Gy3ub/lrTOV7xyQgoMU5pCSdi6PRF7v1N0GfwA3rfri36gCuoSROBQT0YDL5+PH8959P4nYSUDwhoOZWHcA1lMSpgIAWb3ven3xSDigXMlW4mpTW/XDPegL4tcInkQ4m7z0+4gjUOQIKPdYTwK8VApocdBLQLgQUeqwngF8rBTRuJmfhOxBQ6LGeAH4ND+ibO+VmFtd/ch1oDQGFHusJ4FfAEej97GAzCymfROpAQKHHegL4FXYd6MeP5y8/TT/+Hmf0XT4L34KAQo/1BPAr5D3QR/kfY0o/ivSSv8bUioBCj/UE8CvoJNLLH08mlz/ODzlffh738yOOP2sIKPRYTwC/+Iv0Qggo9FhPAL8IqBACCj3WE8AvAiqEgEKP9QTwi4AKIaDQYz0B/CKgQggo9FhPAL8IqBACCj3WE8AvAiqEgEKP9QTwi4AKIaDQYz0B/CKgQggo9KiO9j8en+rzMkFAhRBQ6FEdbQJaQkCFEFDoUR1tAlpCQIUQUOhRHW0CWkJAhRBQ6FEdbQJaQkCFEFDoUR1tAlpCQIUQUOhRHW0CWkJAhRBQ6FEdbQJaQkCFEFDoUR1tAlpCQIUQUOhRHW0CWkJAhRBQ6FEdbQJaQkCFEFDoUR1tAlpyVEAPH5yLouj8LbUnc5IQUOhRHW0CWnJEQA9vRJkz+3rP58QgoNCjOtoEtOSIgE7jo88//9lffRBFl/Sez4lBQKFHdbRXCeirnUVNXu28dU/1eR/PLDqz+Grrdu/m3QGND0Cv5T/nNIeggxFQ6FEd7RUDWlRp0wO6COCR6gE9/Oviq8Xvt6G/6IYjoNCjOtorBrQI1IZ2ZRHQ2bFeedcD+mrn1K3iq/z/VcyijfxFNxwBhR7V0V4toFtn8wO7TQ/o8TSOQG9E0amv0y/3oq0LP/vZz25uD/uJSBFQ6FEd7dUC+tZ/287CWQT02c0oii6kzdmLrj04W3yTig8DH2xHp24nm21H0fn8nodXoujtq9nX1f2fXom2/nA+//V29Pat1lvinT+Id3j7w/3GA8aPtHU1D2jl4Y7QfA80eW7pD3x1JT8Lf2oT/x/FpiOg0KM62isG9N40S1Qe0Nl2Gpmt5LB0LzqXfrM8NJ1FfxDff3p//rS0WXJ+O5G+xK7u/8P0u0t76U23226Z3y0uLqo/YLpJ9IP0jsrDHaXtJFIc4uhi3OfDnyY/Zesip5ACEFDoUR3tVQOan53JAhqX6sJ388O7ee6Saybj/iy6NYuyU9ivdpIkHX4Z5fu8E28Wte1/cT/eKD6QnD+7kZSwecss2koORB80HnCWbHO4l5a18nBHaj0Ln5RzKz3Enf9d8D+zcwQUelRHe9WAxtFLupQFND8cjVOW5u509sJ6cfqmuJSo2Gya3JV/s5dkr2X/uKmX5vnVQ223pD88q3j5AbM7DtPKVh7uSB2XMR3eTd4O4NAzHAGFHtXRXjmgWe3SL6sXS+5l3Zouz7rk11Ae3sjPaD/dPr1fvr6ovv+l+eL0d8ctied/+2dXoiygiwcsTponX1ce7uh/jM7rQJO3Zou3aTEcAYUe1dFePaBprNIvF9f6pN/lR4dtAY0Kb91b7DOft+7fE9Bnxbmda/PyAxbntGZpQEsPd/Q/xhGfREoSeooPwgcioNCjOtqrBzRNWR7Q8tXmbQHNTzhVArqsWn3/7M3VckDrtySnh7bO//CrG7WAPt1eBrTycEf/Y7QE9PlPPzh3/sPv5lmrT/WfyUcLAgo9qqO9hoAm5TrmEWge0NKnKo86Au0NaPIeZ35M230EWnm4ozUDml8ikP3kxTVNGIiAQo/qaK8joHGi/qLtPdCOgFY+VnnUe6C9AS3aGB9k1gNafg/0OJ/iTDUCOosPcM/94Fz2FsF8eU0ThiGg0KM62usIaNyZt7dbzsJ3BDS+KTubk1ZxWjrXVNv/2AGdRcsz79kPqZ6FLz3ckVo+iXSp8oyTa5o28iNXG46AQo/qaK8loMklmMvrOJ/fzC/L7ApofMB4+ut5fsVmdh3ow+Lr8v7HfAmfXBlaD2h6rdPh3eI60OXDHan5WfjmnxA5/CsCOhgBhR7V0V5PQONetXwSqSugxWbRxWyDxWeJavv3n0SaZfue/rJxyDstfRKp8nBHaQZ0cQUUx52rIKDQozra6wlo3KuWz8J3BjT/cHp+VVD3Z+HnfQEt9m150/XB2fpn4fsvQmq8B7oXnfoqPsT99gp/QmQlBBR6VEd7lYCeOI2A5p+ij47z15jRjYBCj+poE9CS5mVM+YX6XP+5GgIKPaqjTUBL2j6JdPi3P/trLlxaEQGFHtXRJqAl/O/CCyGg0KM62gS0hIAKIaDQozraBLSEgAohoNCjOtoEtISACiGg0KM62gS0hIAKIaDQozraBLSEgAohoNCjOtoEtISACiGg0DNG5BcAAB50SURBVKM62gS0hIAKIaDQYz0B/CKgQggo9FhPAL8IqBACCj3WE8AvAiqEgEKP9QTwi4AKIaDQs6mjrfq8TBBQIQQUejZ1tFWflwkCKoSAQs+mjrbq8zJBQIUQUOjZ1NFWfV4mCKgQAgo9mzraqs/LBAEVQkChZ1NHW/V5mSCgQggo9GzqaKs+LxMEVAgBhZ5NHW3V52WCgAohoNCzqaOt+rxMEFAhBBR6NnW0VZ+XCQIqhIBCz6aOturzMkFAhRBQ6NnU0VZ9XiYIqBACCj2bOtqqz8sEARVCQKFnU0db9XmZIKBCCCj0bOpoN/Z9tRPl3r64r/qs57PozOKrrdvr+qkEVAgBhZ5NHe3GvsuARtFb91Sf9iKghzeia2v7qQRUCAGFnk0d7ca+r3aKbD7cXhwR6lgEdBZdWt9PJaBCCCj0bOpoN/ZdBnT+dFv3EHQmEmwCKoSAQs+mjnZj31JAiy+f3dyOovNfZzc+vBJFb1/Nvn52M36dfyG9Yy+69vRKtPWH8/mvt6O3b7XeEu/8QfLe6of72d0PzhZ7zx9sR1tX84BWHm51BFQIAYWeTR3txr6lgM6yN0GfbqdviG6lb0tOs3dH05fYs9Ide9EP0+8u7aU33W67ZX43f2/1TLrDueX7rOkm0Q/SOyoPtwYEVAgBhZ5NHe3GvouAHj7I3gN9tRNd3J8ffpmmLq7bO/vzB8XXF76bH97NcxlvFW8UH0jOn91IdmzeMou2kgPRB8UOZ/aTI89r6R1X54d7aVkrD7cOBFQIAYWeTR3txr7ls/Cnk9fa0/ydyWly2Jl/s5dkr7hjL8tlsnHc1OTYdJZ803ZLeuCanWPP7s5uy+44TCtbebh1IKBCCCj0bOpoN/YtXQd6NSnc4Y38ksyn26f3y9cXLb4uxfHVTrpxxy2J53/7Z1eiLKBpKJNe5tukX1cebi3/GARUCAGFnk0d7ca+2Uv4+CV0HrK4k8vLQovUZRvmX6d7HCugz67kP+lacdSZBzR7uT5LA7ruq1AJqBACCj2bOtqNfYuaTaPsALP0kj4J6LJqi6/zgF6b1wNavyU5PbR1/odf3agFtLhcapbGlICOBAGFnk0d7ca+iy7uZQUrH3TOjzoC7Q1o8h5n9qbAEUeglYdbCwIqhIBCz6aOdmPf0oFl+i5l5WOVR70H2hvQoo3xD64HtPwe6Bo/xZkioEIIKPRs6mg39l2+Ss9fxE/z8z9pFafLUz/1s/DHDugsWp55z35I9Sx86eHWgYAKIaDQs6mj3dh3GdA4aEnD4gPG01/P8ys2s+tAHxZfX/hu/vxmflnnMV/CJ1eG1gOaXut0eLe4DnT5cOtAQIUQUOjZ1NFu7Fv5LHx2DWf20aDoYnLbdPlZotonkfpPIs3yq0u/XB515oex09InkSoPtwYEVAgBhZ5NHe3GvuUT7fl5pOzD6dmn2Y/4LPy8L6DFvuWr6vP3AR6crX8W/ta6/jEIqBACCj2bOtqqz8sEARVCQKFnU0db9XmZIKBCCCj0bOpoqz4vEwRUCAGFnk0dbdXnZYKACiGg0LOpo636vEwQUCEEFHo2dbRVn5cJAiqEgELPpo626vMyIRfQJ3BDLAw4nlUHcNDKHvC8hNqyQTgCFcIRKPRs6mirPi8TBFQIAYWeTR1t1edlgoAKIaDQs6mjrfq8TBBQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfhFQIQQUeqwngF8EVAgBhR7rCeAXARVCQKHHegL4RUCFEFDosZ4AfgUF9Lc/nkwuf/RN+vXr65PU93651uc1egQUeqwngF8hAf15lszLXyTfvNgloG0IKPRYTwC/AgJ6MLn8k/n85Z2smQeT99f+pE4CAgo91hPAr+EBfXNn8lny3/i1e/Lf+9l3qCGg0GM9AfwaHtDX1/NX6/cnnyQ5zV7Jo4aAQo/1BPBrhbPwaUBfX3/3F59OJj/6Zn1P6WQgoNBjPQH8Cg/o6+vJsWdxDqn5Qv4J3LDuh3urDuBKDXEtPKCP0rNHB5PJx4/nv/980nglv46FiXGw7od7qw7gSg1xLTigB1kyH+Un4dPX81hyNSmt++Ge9QTwKzSgB7uXKy/aDybvPV7D0zk5CCj0WE8AvwID+qj+kv3FLlfSVxBQ6LGeAH6FBfTnjbc8X+xyBFpBQKHHegL4FRLQN/cn7+aHm8VV9XwgqY6AQo/1BPArJKD3S+933s/CuQgpcgQUeqwngF8BAX1UPl/0Yje5jOnlp5xDqiGg0GM9AfwK+SjnpJAcfD7K/xgTH0WqIqDQYz0B/Boe0INJJaDzl8kfB/2Y488aAgo91hPAL/4ivRACCj3WE8AvAiqEgEKP9QTwi4AKIaDQYz0B/CKgQggo9FhPAL8IqBACCj3WE8AvAiqEgEKP9QTwi4AKIaDQYz0B/CKgQggo9FhPAL8IqBACCj3WE8AvAiqEgEKP9QTwi4AKIaDQYz0B/CKgQggo9FhPAL8IqBACCj3WE8AvAiqEgEKP9QTwi4AKIaDQYz0B/CKgQggo9FhPAL8IaKjDG2/dK75++EEURee/Kt8dB/T5T88mN3+d3/JgO4ou7Gdfv9rZuq32TOVZ98M96wngFwENNY0WAb0bZS6V7n7yZLZduXmafp3vM43O6D5bWdb9cM96AvhFQANNFzGcz6Lo4v782Y0oura8/8nfb0en4mPS4uZXO9E7+892spqesANQAmrNegL4RUCDHN5dHk0e3sgOJ+P/nt5fbPHkV/n9+c2z9NtptskJOwAloNasJ4BfBDTEwytRdK4IaHxsmR15ll7Uz+e/+7dFJGdRcrg5LWX06XZpw5PAuh/uWU8AvwhogDiZW1dnpYAW73KWurg8C/90ux7Qvcq7pSeAdT/cs54AfhHQAK92Lu7PZ6WX8Onr8uKlfGYZ0OwItPQS/sQdgBJQa9YTwC8CGuK7+XwZ0PlsOzmJ9PxPovKZoWVA99INSyeRTtwBKAG1Zj0B/CKgoZYBnT+9kl6idOrr0t2LgD7dzg5Ms8uYTt07gQegBNSa9QTwi4CGKgX019kVn1tXS3cXAY1f2OfbPTibXu50Ag9ACag16wngFwENtQzoXhS/Ok+vbCqVMQ/oYfXq0HS/5G3QK7UD1nGz7od71hPALwIaahHQ2fKzRqU3QbOAJv2sHm/Gt1xLXtYnR6zVso6YdT/cs54AfhHQUIuA7jWuZ0qkAW32MzsA3Yv/z+Fe+br7cbPuh3vWE8AvAhqqFND86qXKdUxJQF/FL9SvVvdKD0CzS++z60NPBOt+uGc9AfwioKH6A/psp/kqPXsHNE3n4hNM42fdD/esJ4BfBDTUbPmXldpfwiefV6ofYqYHoAQUa2Y9AfwioKEWAX263XoS6Xc3mv2Md0qOUXkJj/WyngB+EdBQlcuYLmaXMZU/yvmr+vVL88WfsUs//MlJJKyN9QTwi4CGWgY0Odeeurif3ZGU8x/+WbRUvLIv/oxdfhnTSTkAJaDWrCeAXwQ0VOmTSPn/pMet4o4koH//T5oBXf4d5WdcSI81sp4AfhFQIfyPykGP9QTwi4AKIaDQYz0B/CKgQggo9FhPAL8IqBACCj3WE8AvAiqEgEKP9QTwi4AKIaDQYz0B/CKgQggo9FhPAL8IqBACCj3WE8AvAiqEgEKP9QTwa3MD+o+wNWCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA8Cig4Dxsq6H+6JrUL0IKDoMGCsrPvhntgqRA+5gD5ZkXU/3BswVtb9cG/VxSZWgROPI1B0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVogcBRYcBY2XdD/fEViF6EFB0GDBW1v1wT2wVosfqAX3z+e5k8tE3a3guVdb9cG/AWFn3w721rz4c08oBfX19kvjeL9fxbMqs++HegLGy7od76158OK6VA3p/8t4385d3Ju89XsfTKbHuh3sDxsq6H+6tee3h2FYN6Ivd9Njz9fXLX6zj6ZRY98O9AWNl3Q/31rz2cGyrBvTR5P38v5+s/mQqrPvh3oCxsu6He2teezi2VQN6f/JZ+t+DPKTrY90P9waMlXU/3Fvz2sOxrRjQN3fyl+4vdutvgj5ZkXU/3BswVtb9cG/VxbZaBTzb3IACULJaBTxbX0DXfyHTqDEpx4OxQii5I1DnWJTjwVghFAEVwqIcD8YKoTb3LPzIsSjHg7FCqNWvA/2k8l/kWJTjwVgh1OZ+EmnkWJTjwVgh1KoBfXNn8q7MZ+FHjkU5HowVQq38x0ReSv01ppFjUY4HY4VQq/890Jefx/38iOPPGhbleDBWCLW5f5F+5FiU48FYIRQBFcKiHA/GCqEIqBAW5XgwVghFQIWwKMeDsUIoAiqERTkejBVCEVAhLMrxYKwQioAKYVGOB2OFUARUCItyPBgrhCKgQliU48FYIRQBFcKiHA/GCqEIqBAW5XgwVghFQIWwKMeDsUIoAiqERTkejBVCEVAhLMrxYKwQioAKYVGOB2OFUARUCItyPBgrhCKgQliU48FYIRQBFcKiHA/GCqEIqBAW5XgwVghFQIWwKMeDsUIoAiqERTkejBVCEVAhLMrxYKwQioAKYVGOB2OFUARUCItyPBgrhCKgQliU48FYIRQBFcKiHA/GCqEIKAAEIqAAEIiAAkAgAgoAgQgoAAQioAAQiIACQCACCgCBCCgABCKgABCIgAJAIAIKAIEIKAAEIqAAEIiAAkAgAgoAgdwH9PX1ySeLL7/3S9Pn0u5g8v7iq8tfmD6VzRMPX+77Hz/WfWjGBQQ0WYHF7N/0gL65M/nM9qlsnmVAJxPl0WNcQEDTFfh+8eVmB/RgcayMwnLMfru7OCLUwbiAgMYr8PIf5QcQmx5QNJXG7MWu7vAxLiCgyQr8H/nKKxbjy8/j14MffZN8eX/y2W/+qPgmFR9u/GZ38u4XyWa7k8mP8nt+++lk8v2fZF9X93/x6eTyf5jP//fu5Pt/2XpLvPOPk/fw/v3jxgPGj3T5J/lCrTwccqWALoePcYEWAhovu0fZUshX4MFu+o7a5eSw9P7kX9XeXjuY/Ov4/vcexwc8y83mj7J34dKXctX9/zj97pP76U1ftN0y/3n+Ht779QdMN5n8u/SOysOhUAroQfaPxrhAEQGNV2B+FiBbjPGK+Oj/zt/8PF9Wk/cfJwcci/VxkNYzfe/048fzN38zyff5N/Fmk7b9P34cbxQfsMxf3klWXPOWg8nl5IDnN40HPEi2eXM/XcGVh8PCIqBvfpO9B8q4QBMBTVZg9vZZthjzw9F4yaTL6r3sBdziNEFxyUqx2aPkrvyb+8nyatk/XrufpLvG37Tdkv7wrOLlB8zueJOu5srDYaF8Fj79l2NcoImAptW8nx1NxF8urknJF1G6PoplUtycLJ/84qcXu+89Ll/HUt//k/Qx0o07bkn8/v/8508n2UJdPGC+Tfp15eEk/znGpnQd6E8YF6gjoNezg894IaRfFssj+y4/CmkLaOnyw8U+83nr/j0L9eWn+U/6bF5+wOLV6UG6UK2udtxw2T9S/BI6/1dnXKCKgOZnjuIlkwc0XwmdAc1POFUW6nL11PfP3lwtL9T6LclpiMs/+uP/eae2UIvLcg7SRctCbVX8cz+aZAeYjAtUEdB8YcUr5JhHoHlAS5/eO+pIp3ehJu+l5ce03Uc6lYfD0qKL97OCMS5QRUCvFxeBXv4vbe+BdgS08vG9o95r612oxRqMD2bqC7X8XhufFmxVOrBMB4ZxgSoCWqzAg8n3d1vOwncENL4pO2uQrr5HpXNNtf2PvVAPJsszvNkPqZ7tLT0cFpav0vMX8YwLNBHQxQq8PyldL/j7z/PL/7oCGh+YvPfNPL8yMLve8LfF1+X9j/lSMbkCsb5Q02tq3vy8uN5w+XBYWA5f/O+YNIxxgSYCuliB8bpo+SRSV0CLzSYfZxssPrNS27//ZMVBfhXj3zQOeR+VPvFSeTgUKp+Fz67hZFygh4AuV+CjSctn4TsDmn8IOvvU9BGfuZ73LdRi35Y3XX/zR/XPXP+l1L/DSJVPtOfnkRgX6HEfUAAIRUABIBABBYBABBQAAhFQAAhEQAEgEAEFgEAEFAACEVAACERAASAQAQWAQAQUAAIRUAAIREBRsxed3m/e+monuhSwG3CiEVDUEFDguAgoaggocFwEFDUEFDguAooaAgocFwFFDQEFjouAomZRwm9vbkdRdO7D9LskoId34xvO3yo2fJbcv3Xh69pugB8EFDV5CQ/vRrlT9+ZpQC/sZN/noZwW918s7wZ4QkBRk5cw7uPF+L/PrkTRmXka0PSGpKvJ98n9ycHn87t5QQkoHCKgqMlKGAcz7WTyRf59/iboNNq6PZ8/3c7vz78noPCIgKImK+Esy2L8Uv5G9Na9NKDJf+ZFWqfFt8kGZ+YEFC4RUNTUS7hXBPRMaYO8mqUdCCgcIqCoKZXw+bc/+9OzURHQS4sN3rr3aicqSTYgoHCIgKKmKOGDs+U+xsW8lm8wJaBAhoCiJith/Bo9uQj0B3/+3V7HEeiZtt0AVwgoarIS5lcxzUvvgV4qbRD3tdZLAgqHCChq0hIuA5mffs+vZpoXKd0rztIXmxJQOERAUVML6HTxHmj+JuhecR1ovsEsu4OAwiECiprKS/hvr0RRGsz0rNE7+/NnN/ML6uMNTt2Kjz+/zD/bSUDhEAFFTf5JpCv5GfYLX6ZHmHFA/+lO+bPvy8/CZ+EkoHCIgKKm+GMiPz2b/K2lr/JL6Jd/jemrYsNnN5MLnYq/zkRA4RABBYBABBQAAhFQAAhEQAEgEAEFgEAEFAACEVAACERAASAQAQWAQAQUAAIRUAAIREABIBABBYBABBQAAhFQAAhEQAEgEAEFgEAEFAACEVAACERAASDQ/wdRK4GLmHvh+AAAAABJRU5ErkJggg==" width="672" /></p>
 <p>81,8% des clients recommandent les vêtements qu’ils ont laissés des
 avis.</p>
-<p>Pour l’étape de modélisation, afin que le modèle ne surapprend pas,
-au lieu d’utiliser l’accuracy comme métrique nous allons utiliser le
+<p>Pour l’étape de modélisation, afin d’éviter le surapprentissage, au
+lieu d’utiliser l’accuracy comme métrique nous allons utiliser le
 <strong>ROC-AUC</strong> pour mesurer la performance.</p>
 <pre class="r"><code>reviews %&gt;% 
   ggplot(aes(x=age)) +
@@ -706,6 +710,239 @@ au lieu d’utiliser l’accuracy comme métrique nous allons utiliser le
 <p>Les clients qui ont laissés des avis dans notre jeu de données ont
 entre 20 ans et 75 ans. Mais on remarque que 3000 des clients se
 trouvent dans leur trentaines voire quarantaines.</p>
+</div>
+<div id="enrichissement-des-données" class="section level1">
+<h1>3. Enrichissement des données</h1>
+<div id="ajout-des-colonnes-nbr_mots-nbr_char-groupe_age" class="section level2">
+<h2>Ajout des colonnes nbr_mots, nbr_char, groupe_age</h2>
+<p>On va rajouter le nombre de mots et le nombre de caractères pour
+chaque avis. En admettant qu’un avis long et détaill est souvent signe
+d’une cliente très satisfaite ou très insatisfaite. On va également
+catégoriser l’âge en trois catégories moins de 30 ans, entre 30 et 40,
+et 60 ans et plus.</p>
+<pre class="r"><code>reviews &lt;- reviews %&gt;% 
+  mutate(
+    nbr_mots = lengths(strsplit(review, &quot; &quot;)),
+    nbr_char = nchar(review),
+    groupe_age = case_when(
+      age &lt; 30 ~&quot;moins de 30 ans&quot;,
+      age &gt;=30 &amp; age &lt; 40 ~ &quot; 30 et 40 ans&quot;,
+      age &gt;=40 &amp; age &lt; 60 ~ &quot; 40 et 60 ans&quot;,
+      TRUE   ~&quot;60 ans et plus&quot;
+    ),
+    groupe_age = factor(groupe_age)
+  )</code></pre>
+</div>
+<div id="extraction-des-mots-clés" class="section level2">
+<h2>Extraction des mots-clés</h2>
+<p>On va aussi extraire les avis ayant des mots-clés qui indiqueront
+potentiellement si une cliente recommande le produit ou non. En prenant
+seulement les mots-clés à connotation positive.</p>
+<pre class="r"><code>reviews &lt;- reviews %&gt;% 
+  mutate(
+  fit = as.integer(str_detect(tolower(review), &quot;fit|fits|fitted&quot;)),
+  quality = as.integer(str_detect(tolower(review), &quot;quality|material|fabric&quot;)),
+ color = as.integer(str_detect(tolower(review), &quot;color|colour|pattern&quot;)),
+love = as.integer(str_detect(tolower(review), &quot;love|lovely|beautiful&quot;)),
+size = as.integer(str_detect(tolower(review), &quot;size|sizing|small|large|petite|medium|big&quot;))
+)</code></pre>
+<pre class="r"><code>reviews %&gt;% 
+  select(review, fit, quality, size, love) %&gt;% 
+  head(5)</code></pre>
+<pre><code>##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 review
+## 1 I had such high hopes for this dress and really wanted it to work for me. i initially ordered the petite small (my usual size) but i found this to be outrageously small. so small in fact that i could not zip it up! i reordered it in petite medium, which was just ok. overall, the top half was comfortable and fit nicely, but the bottom half had a very tight under layer and several somewhat cheap (net) over layers. imo, a major design flaw was the net over layer sewn directly into the zipper - it c
+## 2                                                                                                                                                                                                                                                                                                                                                                                         I love, love, love this jumpsuit. it&#39;s fun, flirty, and fabulous! every time i wear it, i get nothing but great compliments!
+## 3                                                                                                                                                                                                                                                                                                                     This shirt is very flattering to all due to the adjustable front tie. it is the perfect length to wear with leggings and it is sleeveless so it pairs well with any cardigan. love this shirt!!!
+## 4             I love tracy reese dresses, but this one is not for the very petite. i am just under 5 feet tall and usually wear a 0p in this brand. this dress was very pretty out of the package but its a lot of dress. the skirt is long and very full so it overwhelmed my small frame. not a stranger to alterations, shortening and narrowing the skirt would take away from the embellishment of the garment. i love the color and the idea of the style but it just did not work on me. i returned this dress.
+## 5     I aded this in my basket at hte last mintue to see what it would look like in person. (store pick up). i went with teh darkler color only because i am so pale :-) hte color is really gorgeous, and turns out it mathced everythiing i was trying on with it prefectly. it is a little baggy on me and hte xs is hte msallet size (bummer, no petite). i decided to jkeep it though, because as i said, it matvehd everything. my ejans, pants, and the 3 skirts i waas trying on (of which i ]kept all ) oops.
+##   fit quality size love
+## 1   1       0    1    0
+## 2   0       0    0    1
+## 3   0       0    0    1
+## 4   0       0    1    1
+## 5   0       0    1    0</code></pre>
+</div>
+</div>
+<div id="analyse-des-sentiments-sentiments-positifs-et-sentiments-négatifs" class="section level1">
+<h1>4. Analyse des sentiments: sentiments positifs et sentiments
+négatifs</h1>
+<p>Il faudra classer les mots en deux catégories positifs et négatifs.
+Pour cela, on utilisera le lexique Bing crée par les chercheurs Bing Liu
+et Al.</p>
+<pre class="r"><code>sentiments_bing &lt;- reviews %&gt;% 
+  select(clothing_id, review) %&gt;% 
+  unnest_tokens(word, review) %&gt;% 
+  inner_join(get_sentiments(&quot;bing&quot;), by = &quot;word&quot;) %&gt;% 
+  count(clothing_id, sentiment) %&gt;% 
+  pivot_wider(
+    names_from = sentiment,
+    values_from = n,
+    values_fill = 0,
+    names_prefix = &quot;sent_&quot;
+  ) %&gt;% 
+  mutate(score_sentiment = sent_positive - sent_negative)
+
+head(sentiments_bing)</code></pre>
+<pre><code>## # A tibble: 6 × 4
+##   clothing_id sent_negative sent_positive score_sentiment
+##         &lt;int&gt;         &lt;int&gt;         &lt;int&gt;           &lt;int&gt;
+## 1           1             6            14               8
+## 2           2             3             7               4
+## 3           4             0             7               7
+## 4           5             0             3               3
+## 5           7             0             6               6
+## 6           8            10            23              13</code></pre>
+<div id="jointure-des-données-sur-les-sentiments-avec-le-jeu-de-donnée-principal" class="section level2">
+<h2>Jointure des données sur les sentiments avec le jeu de donnée
+principal</h2>
+<pre class="r"><code>reviews &lt;- reviews %&gt;% 
+  left_join(sentiments_bing, by =&quot;clothing_id&quot;)
+
+reviews &lt;- reviews %&gt;% 
+  mutate(
+    sent_positive = replace_na(sent_positive, 0),
+    sent_negative = replace_na(sent_negative, 0),
+    score_sentiment = replace_na(score_sentiment, 0)
+  )
+
+glimpse(reviews)</code></pre>
+<pre><code>## Rows: 19,662
+## Columns: 21
+## $ clothing_id      &lt;int&gt; 1077, 1049, 847, 1080, 858, 858, 1077, 1077, 1077, 10…
+## $ age              &lt;int&gt; 60, 50, 47, 49, 39, 39, 24, 34, 53, 53, 44, 50, 47, 3…
+## $ title            &lt;chr&gt; &quot;Some major design flaws&quot;, &quot;My favorite buy!&quot;, &quot;Flatt…
+## $ review           &lt;chr&gt; &quot;I had such high hopes for this dress and really want…
+## $ rating           &lt;int&gt; 3, 5, 5, 2, 5, 4, 5, 5, 3, 5, 5, 3, 4, 3, 5, 5, 5, 4,…
+## $ recommended      &lt;int&gt; 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,…
+## $ feedback_positif &lt;int&gt; 0, 0, 6, 4, 1, 4, 0, 0, 14, 2, 0, 1, 3, 2, 0, 0, 0, 2…
+## $ division         &lt;chr&gt; &quot;General&quot;, &quot;General Petite&quot;, &quot;General&quot;, &quot;General&quot;, &quot;G…
+## $ department       &lt;chr&gt; &quot;Dresses&quot;, &quot;Bottoms&quot;, &quot;Tops&quot;, &quot;Dresses&quot;, &quot;Tops&quot;, &quot;Top…
+## $ class            &lt;chr&gt; &quot;Dresses&quot;, &quot;Pants&quot;, &quot;Blouses&quot;, &quot;Dresses&quot;, &quot;Knits&quot;, &quot;K…
+## $ nbr_mots         &lt;int&gt; 98, 22, 36, 98, 101, 97, 34, 72, 66, 91, 66, 96, 95, …
+## $ nbr_char         &lt;int&gt; 500, 124, 192, 488, 496, 482, 166, 360, 336, 502, 374…
+## $ groupe_age       &lt;fct&gt; 60 ans et plus,  40 et 60 ans,  40 et 60 ans,  40 et …
+## $ fit              &lt;int&gt; 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1,…
+## $ quality          &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0,…
+## $ color            &lt;int&gt; 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0,…
+## $ love             &lt;int&gt; 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0,…
+## $ size             &lt;int&gt; 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1,…
+## $ sent_negative    &lt;int&gt; 303, 29, 3, 274, 24, 24, 303, 303, 303, 426, 1, 303, …
+## $ sent_positive    &lt;int&gt; 1099, 131, 21, 1115, 82, 82, 1099, 1099, 1099, 1286, …
+## $ score_sentiment  &lt;int&gt; 796, 102, 18, 841, 58, 58, 796, 796, 796, 860, 1, 796…</code></pre>
+</div>
+<div id="transformation-de-la-variable-recommended-en-catégorielle" class="section level2">
+<h2>Transformation de la variable “recommended” en catégorielle</h2>
+<pre class="r"><code>reviews &lt;- reviews %&gt;% 
+  mutate(
+    recommended = factor(recommended, levels=c(0,1),
+    labels = c(&quot;Non&quot;,&quot;Oui&quot;)),
+    groupe_age = factor(groupe_age)
+  )</code></pre>
+</div>
+</div>
+<div id="modélisation" class="section level1">
+<h1>Modélisation</h1>
+<p>La variable cible <code>recommended</code> étant binaire (Oui/Non),
+le modèle sera une classification. Il sera <strong>supervisé</strong>
+car la variable est déjà étiquetée.</p>
+<div id="régression-logistique" class="section level2">
+<h2>Régression Logistique</h2>
+<div id="construction-du-modèle" class="section level3">
+<h3>Construction du modèle</h3>
+<pre class="r"><code>modele &lt;- reviews %&gt;% 
+  drop_na() %&gt;% 
+  mutate(
+    recommended = if_else(recommended == &quot;Oui&quot;, 1, 0),
+    department = factor(department),
+    division = factor(division),
+    class = factor(class),
+    group_age = factor(groupe_age)
+  )</code></pre>
+</div>
+<div id="séparation-du-jeu-dentraînement-et-du-jeu-de-test" class="section level3">
+<h3>Séparation du jeu d’entraînement et du jeu de test</h3>
+<pre class="r"><code>set.seed(42)
+train_idx &lt;- sample(nrow(modele), 0.8 * nrow(modele))
+train &lt;- modele[train_idx, ]
+test &lt;- modele[-train_idx, ]</code></pre>
+</div>
+<div id="entraînement" class="section level3">
+<h3>Entraînement</h3>
+<pre class="r"><code>modele_log &lt;- glm(
+  recommended ~ feedback_positif + department + fit + quality + color + love + size + score_sentiment +  sent_positive, 
+  data = train,
+  family = binomial
+)
+
+summary(modele_log)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = recommended ~ feedback_positif + department + fit + 
+##     quality + color + love + size + score_sentiment + sent_positive, 
+##     family = binomial, data = train)
+## 
+## Coefficients:
+##                      Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)         1.4165677  0.0683730  20.718  &lt; 2e-16 ***
+## feedback_positif   -0.0173699  0.0031303  -5.549 2.87e-08 ***
+## departmentDresses  -0.3175740  0.0811235  -3.915 9.05e-05 ***
+## departmentIntimate  0.0574269  0.1005019   0.571 0.567728    
+## departmentJackets  -0.0452515  0.1186009  -0.382 0.702800    
+## departmentTops     -0.3531119  0.0668506  -5.282 1.28e-07 ***
+## departmentTrend    -0.4777787  0.2636599  -1.812 0.069970 .  
+## fit                 0.3468936  0.0450415   7.702 1.34e-14 ***
+## quality            -0.5702587  0.0428740 -13.301  &lt; 2e-16 ***
+## color               0.2119969  0.0473469   4.478 7.55e-06 ***
+## love                0.5624164  0.0432189  13.013  &lt; 2e-16 ***
+## size                0.1431552  0.0434337   3.296 0.000981 ***
+## score_sentiment     0.0024404  0.0006665   3.661 0.000251 ***
+## sent_positive      -0.0017403  0.0005022  -3.465 0.000530 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 14904  on 15728  degrees of freedom
+## Residual deviance: 14350  on 15715  degrees of freedom
+## AIC: 14378
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+</div>
+<div id="évaluation" class="section level3">
+<h3>Évaluation</h3>
+<pre class="r"><code>predictions &lt;- predict(modele_log,
+                       newdata = test,
+                       type = &quot;response&quot;)
+
+# Conversions en classes pour la matrice de confusion en utilisant un seuil à 0.5
+classes_predites &lt;- if_else(predictions &gt; 0.5, 1, 0)</code></pre>
+</div>
+<div id="matrice-de-confusion" class="section level3">
+<h3>Matrice de confusion</h3>
+<pre class="r"><code>table(Valeurs_reelles = test$recommended,
+      valeurs_predites = classes_predites)</code></pre>
+<pre><code>##                valeurs_predites
+## Valeurs_reelles    0    1
+##               0    1  718
+##               1    0 3214</code></pre>
+<p>Le modèle prédit presque toujours “Oui” même lorsque le produit n’est
+pas réellement recommandé.</p>
+</div>
+<div id="répartition-de-la-variable-cible-recommended" class="section level3">
+<h3>Répartition de la variable cible <code>recommended</code></h3>
+<pre class="r"><code>table(train$recommended)</code></pre>
+<pre><code>## 
+##     0     1 
+##  2856 12873</code></pre>
+<p>Cette répartition explique pourquoi le modèle prédit tout le temps
+“recommandé” à un produit.</p>
+</div>
+<div id="mesure-de-performance-du-modèle" class="section level3">
+<h3>Mesure de performance du modèle</h3>
+<pre class="r"><code>mean(classes_predites == test$recommended)</code></pre>
+<pre><code>## [1] 0.8174422</code></pre>
+</div>
+</div>
 </div>
 
 
